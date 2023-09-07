@@ -41,7 +41,13 @@ pub async fn request(
         .join(&file);
 
         // TODO: add etag
-        let req = Request::builder().uri(uri).body(Body::empty()).unwrap();
+        let req = match Request::builder().uri(uri).body(Body::empty()) {
+            Ok(x) => x,
+            Err(err) => {
+                warn!("{}", err);
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+        };
         return Ok(ServeFile::new(path).oneshot(req).await);
     }
 

@@ -36,10 +36,10 @@ pub fn init_state(content_dir: String) -> Result<AppState, Box<dyn Error>> {
 }
 
 /// Configure the Axum application with routes, middleware, and shared state
-fn config_app(content_dir: String) -> Router {
+fn config_app(content_dir: String) -> Result<Router, Box<dyn Error>> {
     // Initialize the shared application state
-    let shared_state = Arc::new(init_state(content_dir).unwrap());
-    Router::new()
+    let shared_state = Arc::new(init_state(content_dir)?);
+    Ok(Router::new()
         // Define routes and associate them with request handlers
         .route("/request/:hash/:file", get(services::request))
         .route("/health_check", get(services::health_check))
@@ -55,7 +55,7 @@ fn config_app(content_dir: String) -> Router {
                     tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO),
                 ),
         )
-        .layer(CompressionLayer::new())
+        .layer(CompressionLayer::new()))
 }
 
 /// Run without TLS
@@ -64,7 +64,7 @@ pub async fn run(
     content_dir: String,
 ) -> Result<impl Future<Output = std::io::Result<()>> + Sized, Box<dyn Error>> {
     // Configure the application
-    let app = config_app(content_dir);
+    let app = config_app(content_dir)?;
 
     // Create and return the server
     Ok(axum_server::from_tcp(listener).serve(app.into_make_service()))
@@ -81,7 +81,7 @@ pub async fn run_tls(
     let tls_config = RustlsConfig::from_pem_file(cert_path, key_path).await?;
 
     // Configure the application
-    let app = config_app(content_dir);
+    let app = config_app(content_dir)?;
 
     // Create and return the server
     Ok(axum_server::from_tcp_rustls(listener, tls_config).serve(app.into_make_service()))
