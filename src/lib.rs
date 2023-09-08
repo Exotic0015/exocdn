@@ -41,7 +41,7 @@ fn config_app(content_dir: String) -> Result<Router, Box<dyn Error>> {
     let shared_state = Arc::new(init_state(content_dir)?);
     Ok(Router::new()
         // Define routes and associate them with request handlers
-        .route("/request/:hash/:file", get(services::request))
+        .route("/request/:hash/*file", get(services::request))
         .route("/health_check", get(services::health_check))
         // Attach the shared state
         .with_state(shared_state)
