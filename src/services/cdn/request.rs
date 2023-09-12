@@ -1,4 +1,4 @@
-use crate::AppState;
+use crate::CdnAppState;
 use axum::extract::{Path, State};
 use axum::http::{Request, StatusCode, Uri};
 use axum::response::IntoResponse;
@@ -18,11 +18,19 @@ pub struct RequestStruct {
 
 pub async fn request(
     Path(RequestStruct { hash, file }): Path<RequestStruct>,
-    State(state): State<Arc<AppState>>,
+    State(state): State<Arc<CdnAppState>>,
     uri: Uri,
 ) -> Result<impl IntoResponse, StatusCode> {
     if &hash
-        == match state.hashlock.get(&file) {
+        == match match state.hasharc.clone().read() {
+            Ok(x) => x,
+            Err(err) => {
+                warn!("{}", err);
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+        }
+        .get(&file)
+        {
             Some(x) => x,
             None => {
                 return Err(StatusCode::NOT_FOUND);

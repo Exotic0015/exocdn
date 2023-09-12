@@ -8,14 +8,14 @@ async fn request_returns_correct_file() {
     let address = common::start_app().await;
     let client = reqwest::Client::new();
 
-    let mut file = File::open("tests/content/testfile.txt").unwrap();
+    let mut file = File::open("tests/cdn_test_content/testfile.txt").unwrap();
     let mut file_contents = Vec::new();
     file.read_to_end(&mut file_contents).unwrap();
 
     let hash = blake3::hash(&file_contents).to_string();
 
     let response = client
-        .get(&format!("{}/request/{}/testfile.txt", &address, &hash))
+        .get(&format!("{}/cdn/request/{}/testfile.txt", &address, &hash))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -29,7 +29,7 @@ async fn nested_files() {
     let address = common::start_app().await;
     let client = reqwest::Client::new();
 
-    let mut file = File::open("tests/content/nested/nestedfile.txt").unwrap();
+    let mut file = File::open("tests/cdn_test_content/nested/nestedfile.txt").unwrap();
     let mut file_contents = Vec::new();
     file.read_to_end(&mut file_contents).unwrap();
 
@@ -37,7 +37,7 @@ async fn nested_files() {
 
     let response = client
         .get(&format!(
-            "{}/request/{}/nested/nestedfile.txt",
+            "{}/cdn/request/{}/nested/nestedfile.txt",
             &address, &hash
         ))
         .send()
@@ -55,7 +55,7 @@ async fn bad_hash_returns_404() {
 
     let response = client
         .get(&format!(
-            "{}/request/wrong test hash/testfile.txt",
+            "{}/cdn/request/wrong test hash/testfile.txt",
             &address,
         ))
         .send()
@@ -72,7 +72,7 @@ async fn bad_file_returns_404() {
 
     let response = client
         .get(&format!(
-            "{}/request/wrong test hash/non existing file.txt",
+            "{}/cdn/request/wrong test hash/non existing file.txt",
             &address,
         ))
         .send()
@@ -87,14 +87,14 @@ async fn empty_file() {
     let address = common::start_app().await;
     let client = reqwest::Client::new();
 
-    let mut file = File::open("tests/content/empty.txt").unwrap();
+    let mut file = File::open("tests/cdn_test_content/empty.txt").unwrap();
     let mut file_contents = Vec::new();
     file.read_to_end(&mut file_contents).unwrap();
 
     let hash = blake3::hash(&file_contents).to_string();
 
     let response = client
-        .get(&format!("{}/request/{}/empty.txt", &address, &hash))
+        .get(&format!("{}/cdn/request/{}/empty.txt", &address, &hash))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -109,7 +109,7 @@ async fn concurrent_requests_for_same_file() {
     let client = reqwest::Client::new();
 
     // File to be requested concurrently
-    let mut file = File::open("tests/content/testfile.txt").unwrap();
+    let mut file = File::open("tests/cdn_test_content/testfile.txt").unwrap();
     let mut file_contents = Vec::new();
     file.read_to_end(&mut file_contents).unwrap();
     let hash = blake3::hash(&file_contents).to_string();
@@ -130,7 +130,7 @@ async fn concurrent_requests_for_same_file() {
         let task = tokio::spawn(async move {
             let response = client_clone
                 .get(&format!(
-                    "{}/request/{}/testfile.txt",
+                    "{}/cdn/request/{}/testfile.txt",
                     &address_clone, &hash_clone
                 ))
                 .send()
@@ -163,7 +163,7 @@ async fn path_traversal_attack_returns_404() {
 
     let response = client
         .get(&format!(
-            "{}/request/{}/../../../../../../etc/passwd",
+            "{}/cdn/request/{}/../../../../../../etc/passwd",
             &address, &hash
         ))
         .send()

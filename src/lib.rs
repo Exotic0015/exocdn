@@ -1,70 +1,71 @@
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
-use std::collections::HashMap;
 use std::error::Error;
 use std::future::Future;
 use std::net::TcpListener;
 use std::sync::Arc;
 use tower_http::compression::CompressionLayer;
 
-mod calculate_hashes;
 mod services;
 
-/// Application state structure, including a hash lock and content directory
-pub struct AppState {
-    hashlock: Arc<HashMap<String, String>>,
-    content_dir: String,
-}
+mod configuration;
+pub use configuration::*;
 
-/// Function to initialize the application state
-pub fn init_state(content_dir: String) -> Result<AppState, Box<dyn Error>> {
-    // Create a new empty hashmap to store file hashes
-    let mut hashmap = HashMap::new();
+mod cdnappstate;
+use cdnappstate::*;
 
-    // Calculate file hashes and populate the hashmap
-    calculate_hashes::calculate_hashes(&content_dir, &mut hashmap)?;
-
-    // Wrap the hashmap in an Arc for threaded access
-    let hashlock = Arc::new(hashmap);
-
-    // Create and return the application state
-    Ok(AppState {
-        hashlock,
-        content_dir: content_dir.clone(),
-    })
-}
+mod drmappstate;
+use drmappstate::*;
 
 /// Configure the Axum application with routes, middleware, and shared state
-fn config_app(content_dir: String) -> Result<Router, Box<dyn Error>> {
-    // Initialize the shared application state
-    let shared_state = Arc::new(init_state(content_dir)?);
-    Ok(Router::new()
-        // Define routes and associate them with request handlers
-        .route("/request/:hash/*file", get(services::request))
-        .route("/health_check", get(services::health_check))
-        // Attach the shared state
-        .with_state(shared_state)
-        // Add middleware
-        .layer(
-            tower_http::trace::TraceLayer::new_for_http()
-                .make_span_with(
-                    tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
-                )
-                .on_response(
-                    tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO),
-                ),
-        )
-        .layer(CompressionLayer::new()))
+fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
+    let mut app = Router::new().route("/health_check", get(services::health_check));
+
+    if config.cdn_settings.enabled {
+        let app_cdn_state = Arc::new(CdnAppState::new(config.cdn_settings.content_dir)?);
+
+        let cdn_router = Router::new()
+            .route("/request/:hash/*file", get(services::cdn::request))
+            .with_state(app_cdn_state)
+            .layer(
+                tower_http::trace::TraceLayer::new_for_http()
+                    .make_span_with(
+                        tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
+                    )
+                    .on_response(
+                        tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO),
+                    ),
+            )
+            .layer(CompressionLayer::new());
+
+        app = app.nest("/cdn", cdn_router);
+    }
+
+    if config.drm_settings.enabled {
+        let app_drm_state = Arc::new(DrmAppState::new(
+            config.drm_settings.content_dir,
+            config.drm_settings.forbidden_file,
+            config.drm_settings.tokens,
+        )?);
+
+        let drm_router = Router::new()
+            .route("/request", post(services::drm::request_post))
+            .with_state(app_drm_state);
+
+        app = app.nest("/drm", drm_router);
+    }
+
+    Ok(app)
 }
 
 /// Run without TLS
 pub async fn run(
     listener: TcpListener,
-    content_dir: String,
+    config: Settings,
 ) -> Result<impl Future<Output = std::io::Result<()>> + Sized, Box<dyn Error>> {
     // Configure the application
-    let app = config_app(content_dir)?;
+    let app = config_app(config)?;
 
     // Create and return the server
     Ok(axum_server::from_tcp(listener).serve(app.into_make_service()))
@@ -73,15 +74,17 @@ pub async fn run(
 /// Run with TLS
 pub async fn run_tls(
     listener: TcpListener,
-    content_dir: String,
-    cert_path: String,
-    key_path: String,
+    config: Settings,
 ) -> Result<impl Future<Output = std::io::Result<()>> + Sized, Box<dyn Error>> {
     // Load TLS configuration from certificate and private key files
-    let tls_config = RustlsConfig::from_pem_file(cert_path, key_path).await?;
+    let tls_config = RustlsConfig::from_pem_file(
+        &config.tls_settings.cert_path,
+        &config.tls_settings.key_path,
+    )
+    .await?;
 
     // Configure the application
-    let app = config_app(content_dir)?;
+    let app = config_app(config)?;
 
     // Create and return the server
     Ok(axum_server::from_tcp_rustls(listener, tls_config).serve(app.into_make_service()))

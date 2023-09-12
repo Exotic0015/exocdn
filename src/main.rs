@@ -1,5 +1,3 @@
-mod configuration;
-
 use exocdn::{run, run_tls};
 use std::error::Error;
 use std::io;
@@ -43,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .init();
 
-    let config = match configuration::get_config() {
+    let config = match exocdn::Settings::from_file(String::from("config")) {
         Ok(x) => x,
         Err(e) => {
             error!("Config: {}", e);
@@ -55,21 +53,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let listener =
         TcpListener::bind(address).expect(&format!("Failed to bind port {}", config.port));
 
-    if config.key_path.is_empty() || config.cert_path.is_empty() {
+    if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         warn!("Running an insecure (no TLS) instance!");
 
         // Run the server without TLS
-        run(listener, config.content_dir).await?.await?;
+        run(listener, config).await?.await?;
     } else {
         // Run the server with TLS
-        run_tls(
-            listener,
-            config.content_dir,
-            config.cert_path,
-            config.key_path,
-        )
-        .await?
-        .await?;
+        run_tls(listener, config).await?.await?;
     }
 
     Ok(())
