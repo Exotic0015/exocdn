@@ -39,6 +39,10 @@ impl Internal {
 
 /// Configure the Axum application with routes, middleware, and shared state
 fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
+    let http_log = tower_http::trace::TraceLayer::new_for_http()
+        .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO))
+        .on_response(tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO));
+
     let mut app = Router::new().route("/health_check", get(services::health_check));
 
     if config.cdn_settings.enabled {
@@ -47,15 +51,7 @@ fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
         let cdn_router = Router::new()
             .route("/request/:hash/*file", get(services::cdn::request))
             .with_state(app_cdn_state)
-            .layer(
-                tower_http::trace::TraceLayer::new_for_http()
-                    .make_span_with(
-                        tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
-                    )
-                    .on_response(
-                        tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO),
-                    ),
-            )
+            .layer(http_log.clone())
             .layer(CompressionLayer::new());
 
         app = app.nest("/cdn", cdn_router);
@@ -66,7 +62,9 @@ fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
 
         let drm_router = Router::new()
             .route("/request", post(services::drm::request_post))
-            .with_state(app_drm_state);
+            .with_state(app_drm_state)
+            .layer(http_log.clone())
+            .layer(CompressionLayer::new());
 
         app = app.nest("/drm", drm_router);
     }
