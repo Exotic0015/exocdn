@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let file_format = tracing_subscriber::fmt::format()
         .with_level(true)
         .with_target(false)
-        .with_thread_ids(false)
+        .with_thread_ids(true)
         .with_thread_names(false)
         .with_ansi(false)
         .compact();
