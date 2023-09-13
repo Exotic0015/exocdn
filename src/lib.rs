@@ -19,9 +19,9 @@ use cdnappstate::*;
 mod drmappstate;
 use drmappstate::*;
 
-pub struct Internal;
+struct Internal;
 impl Internal {
-    pub fn build_req(
+    fn build_req(
         uri: axum::http::Uri,
     ) -> Result<axum::http::Request<hyper::Body>, axum::http::StatusCode> {
         match axum::http::Request::builder()
