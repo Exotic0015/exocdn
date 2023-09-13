@@ -46,7 +46,7 @@ pub async fn request_post(
             None => return Err(StatusCode::NOT_FOUND),
         }
         .to_string_lossy()
-        .to_string(),
+        .into_owned(),
     ) {
         return Err(StatusCode::NOT_FOUND);
     }

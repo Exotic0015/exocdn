@@ -9,14 +9,17 @@ use tracing_appender::{non_blocking, rolling};
 use tracing_subscriber::Layer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+static LOG_FILENAME: &str = "exocdn.log";
+static CONFIG_FILENAME: &str = "config.toml";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let log_file = Path::new("exocdn.log");
+    let log_file = Path::new(LOG_FILENAME);
     if log_file.exists() {
         std::fs::remove_file(log_file)?;
     }
 
-    let appender = rolling::never("", "exocdn.log");
+    let appender = rolling::never("", LOG_FILENAME);
     let (non_blocking_appender, _guard) = non_blocking(appender);
 
     let file_format = tracing_subscriber::fmt::format()
@@ -41,7 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .init();
 
-    let config = match exocdn::Settings::from_file(String::from("config")) {
+    let config = match exocdn::Settings::from_file(CONFIG_FILENAME) {
         Ok(x) => x,
         Err(e) => {
             error!("Config: {}", e);

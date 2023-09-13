@@ -36,9 +36,9 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn from_file(name: String) -> Result<Self, config::ConfigError> {
+    pub fn from_file(name: &str) -> Result<Self, config::ConfigError> {
         let settings = Config::builder()
-            .add_source(config::File::with_name(&name))
+            .add_source(config::File::with_name(name))
             .build()?;
 
         settings.try_deserialize()
