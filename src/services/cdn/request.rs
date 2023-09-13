@@ -37,7 +37,7 @@ pub async fn request(
         }
     {
         // If the hash matches, attempt to open and serve the requested file
-        let path = PathBuf::new().join(&state.content_dir).join(&file);
+        let path = PathBuf::new().join(&state.config.content_dir).join(&file);
 
         let req = crate::Internal::build_req(uri)?;
         return Ok(ServeFile::new(path).oneshot(req).await);

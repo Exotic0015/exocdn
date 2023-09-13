@@ -42,7 +42,7 @@ fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
     let mut app = Router::new().route("/health_check", get(services::health_check));
 
     if config.cdn_settings.enabled {
-        let app_cdn_state = Arc::new(CdnAppState::new(config.cdn_settings.content_dir)?);
+        let app_cdn_state = Arc::new(CdnAppState::new(config.cdn_settings)?);
 
         let cdn_router = Router::new()
             .route("/request/:hash/*file", get(services::cdn::request))
