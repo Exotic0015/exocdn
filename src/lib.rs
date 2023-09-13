@@ -62,12 +62,7 @@ fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
     }
 
     if config.drm_settings.enabled {
-        let app_drm_state = Arc::new(DrmAppState::new(
-            config.drm_settings.content_dir,
-            config.drm_settings.forbidden_file,
-            config.drm_settings.allowed_extensions,
-            config.drm_settings.tokens,
-        )?);
+        let app_drm_state = Arc::new(DrmAppState::new(config.drm_settings)?);
 
         let drm_router = Router::new()
             .route("/request", post(services::drm::request_post))

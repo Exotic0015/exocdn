@@ -19,14 +19,14 @@ pub async fn request_post(
     uri: Uri,
     Form(parameters): Form<RequestStruct>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    if !state.tokens.contains(&parameters.token) {
-        if state.forbidden_file_name.is_empty() {
+    if !state.config.tokens.contains(&parameters.token) {
+        if state.config.forbidden_file.is_empty() {
             return Err(StatusCode::FORBIDDEN);
         }
 
         let forbidden_file_path = PathBuf::new()
-            .join(&state.content_dir)
-            .join(&state.forbidden_file_name);
+            .join(&state.config.content_dir)
+            .join(&state.config.forbidden_file);
 
         return Ok((
             StatusCode::FORBIDDEN,
@@ -37,10 +37,10 @@ pub async fn request_post(
     }
 
     let path = PathBuf::new()
-        .join(&state.content_dir)
+        .join(&state.config.content_dir)
         .join(&parameters.file);
 
-    if !state.allowed_extensions.contains(
+    if !state.config.allowed_extensions.contains(
         &match path.extension() {
             Some(x) => x,
             None => return Err(StatusCode::NOT_FOUND),
