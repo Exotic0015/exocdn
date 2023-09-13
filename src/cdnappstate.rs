@@ -28,7 +28,7 @@ impl CdnAppState {
     }
 
     fn calculate_hashes(&self) -> Result<(), Box<dyn Error>> {
-        info!("Calculating file hashes...");
+        info!("Calculating CDN file hashes...");
         let mut files: Vec<walkdir::DirEntry> = Vec::new();
 
         for entry in WalkDir::new(&self.config.content_dir) {
