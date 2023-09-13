@@ -1,6 +1,6 @@
 [package]
 name = "exocdn"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 publish = false
 authors = [ "Exotic" ]
@@ -8,7 +8,7 @@ authors = [ "Exotic" ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.6", default-features = false, features = [ "tracing", "http1", "http2", "tokio" ] }
+axum = { version = "0.6", default-features = false, features = [ "tracing", "http1", "http2", "tokio", "form" ] }
 axum-server = { version = "0.5", default-features = false, features = [ "tls-rustls" ] }
 rustls = "0.21"
 rustls-pemfile = "1.0"

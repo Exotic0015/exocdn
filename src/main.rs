@@ -1,5 +1,3 @@
-mod configuration;
-
 use exocdn::{run, run_tls};
 use std::error::Error;
 use std::io;
@@ -11,20 +9,23 @@ use tracing_appender::{non_blocking, rolling};
 use tracing_subscriber::Layer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+static LOG_FILENAME: &str = "exocdn.log";
+static CONFIG_FILENAME: &str = "config.toml";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let log_file = Path::new("exocdn.log");
+    let log_file = Path::new(LOG_FILENAME);
     if log_file.exists() {
         std::fs::remove_file(log_file)?;
     }
 
-    let appender = rolling::never("", "exocdn.log");
+    let appender = rolling::never("", LOG_FILENAME);
     let (non_blocking_appender, _guard) = non_blocking(appender);
 
     let file_format = tracing_subscriber::fmt::format()
         .with_level(true)
         .with_target(false)
-        .with_thread_ids(false)
+        .with_thread_ids(true)
         .with_thread_names(false)
         .with_ansi(false)
         .compact();
@@ -43,7 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .init();
 
-    let config = match configuration::get_config() {
+    let config = match exocdn::Settings::from_file(CONFIG_FILENAME) {
         Ok(x) => x,
         Err(e) => {
             error!("Config: {}", e);
@@ -55,21 +56,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let listener =
         TcpListener::bind(address).expect(&format!("Failed to bind port {}", config.port));
 
-    if config.key_path.is_empty() || config.cert_path.is_empty() {
+    if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         warn!("Running an insecure (no TLS) instance!");
 
         // Run the server without TLS
-        run(listener, config.content_dir).await?.await?;
+        run(listener, config).await?.await?;
     } else {
         // Run the server with TLS
-        run_tls(
-            listener,
-            config.content_dir,
-            config.cert_path,
-            config.key_path,
-        )
-        .await?
-        .await?;
+        run_tls(listener, config).await?.await?;
     }
 
     Ok(())
