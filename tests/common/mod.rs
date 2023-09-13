@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::net::TcpListener;
 
 pub async fn start_app() -> String {
@@ -19,7 +19,8 @@ pub async fn start_app() -> String {
             enabled: true,
             content_dir: "tests/cdn_test_content".to_string(),
             forbidden_file: "forbidden.txt".to_string(),
-            tokens: HashMap::from([("test_token1".to_string(), true)]),
+            allowed_extensions: HashSet::from([("txt".to_string())]),
+            tokens: HashSet::from([("test_token1".to_string())]),
         },
     };
 

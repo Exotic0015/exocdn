@@ -3,6 +3,8 @@ use std::io::Read;
 
 mod common;
 
+static URL: &str = "/cdn/request";
+
 #[tokio::test]
 async fn request_returns_correct_file() {
     let address = common::start_app().await;
@@ -15,7 +17,7 @@ async fn request_returns_correct_file() {
     let hash = blake3::hash(&file_contents).to_string();
 
     let response = client
-        .get(&format!("{}/cdn/request/{}/testfile.txt", &address, &hash))
+        .get(&format!("{address}{URL}/{hash}/testfile.txt"))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -36,10 +38,7 @@ async fn nested_files() {
     let hash = blake3::hash(&file_contents).to_string();
 
     let response = client
-        .get(&format!(
-            "{}/cdn/request/{}/nested/nestedfile.txt",
-            &address, &hash
-        ))
+        .get(&format!("{address}{URL}/{hash}/nested/nestedfile.txt"))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -54,10 +53,7 @@ async fn bad_hash_returns_404() {
     let client = reqwest::Client::new();
 
     let response = client
-        .get(&format!(
-            "{}/cdn/request/wrong test hash/testfile.txt",
-            &address,
-        ))
+        .get(&format!("{address}{URL}/wrong test hash/testfile.txt"))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -72,8 +68,7 @@ async fn bad_file_returns_404() {
 
     let response = client
         .get(&format!(
-            "{}/cdn/request/wrong test hash/non existing file.txt",
-            &address,
+            "{address}{URL}/wrong test hash/non existing file.txt"
         ))
         .send()
         .await
@@ -94,7 +89,7 @@ async fn empty_file() {
     let hash = blake3::hash(&file_contents).to_string();
 
     let response = client
-        .get(&format!("{}/cdn/request/{}/empty.txt", &address, &hash))
+        .get(&format!("{address}{URL}/{hash}/empty.txt"))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -129,10 +124,7 @@ async fn concurrent_requests_for_same_file() {
         // Spawn a new task for each concurrent request
         let task = tokio::spawn(async move {
             let response = client_clone
-                .get(&format!(
-                    "{}/cdn/request/{}/testfile.txt",
-                    &address_clone, &hash_clone
-                ))
+                .get(&format!("{address_clone}{URL}/{hash_clone}/testfile.txt"))
                 .send()
                 .await
                 .expect("Failed to execute request.");
@@ -163,8 +155,7 @@ async fn path_traversal_attack_returns_404() {
 
     let response = client
         .get(&format!(
-            "{}/cdn/request/{}/../../../../../../etc/passwd",
-            &address, &hash
+            "{address}{URL}{hash}/../../../../../../etc/passwd"
         ))
         .send()
         .await

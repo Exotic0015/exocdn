@@ -6,6 +6,7 @@ use std::future::Future;
 use std::net::TcpListener;
 use std::sync::Arc;
 use tower_http::compression::CompressionLayer;
+use tracing::warn;
 
 mod services;
 
@@ -17,6 +18,24 @@ use cdnappstate::*;
 
 mod drmappstate;
 use drmappstate::*;
+
+pub struct Internal;
+impl Internal {
+    pub fn build_req(
+        uri: axum::http::Uri,
+    ) -> Result<axum::http::Request<hyper::Body>, axum::http::StatusCode> {
+        match axum::http::Request::builder()
+            .uri(uri)
+            .body(hyper::Body::empty())
+        {
+            Ok(x) => Ok(x),
+            Err(err) => {
+                warn!("{}", err);
+                Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+            }
+        }
+    }
+}
 
 /// Configure the Axum application with routes, middleware, and shared state
 fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
@@ -46,6 +65,7 @@ fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
         let app_drm_state = Arc::new(DrmAppState::new(
             config.drm_settings.content_dir,
             config.drm_settings.forbidden_file,
+            config.drm_settings.allowed_extensions,
             config.drm_settings.tokens,
         )?);
 

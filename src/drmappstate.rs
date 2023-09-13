@@ -1,22 +1,25 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::error::Error;
 use tracing::warn;
 
 pub struct DrmAppState {
     pub content_dir: String,
     pub forbidden_file_name: String,
-    pub tokens: HashMap<String, bool>,
+    pub allowed_extensions: HashSet<String>,
+    pub tokens: HashSet<String>,
 }
 
 impl DrmAppState {
     pub fn new(
         content_dir: String,
         forbidden_file_name: String,
-        tokens: HashMap<String, bool>,
+        allowed_extensions: HashSet<String>,
+        tokens: HashSet<String>,
     ) -> Result<Self, Box<dyn Error>> {
         let state = Self {
             content_dir,
             forbidden_file_name,
+            allowed_extensions,
             tokens,
         };
 

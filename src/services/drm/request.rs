@@ -1,14 +1,12 @@
 use crate::DrmAppState;
 use axum::extract::{Form, State};
-use axum::http::{Request, StatusCode, Uri};
+use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
-use hyper::Body;
 use serde::Deserialize;
-use std::env::current_dir;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
-use tracing::warn;
 
 #[derive(Deserialize)]
 pub struct RequestStruct {
@@ -21,48 +19,46 @@ pub async fn request_post(
     uri: Uri,
     Form(parameters): Form<RequestStruct>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    let req = match Request::builder().uri(uri).body(Body::empty()) {
-        Ok(x) => x,
-        Err(err) => {
-            warn!("{}", err);
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
-        }
-    };
-
-    if !state.tokens.contains_key(&parameters.token) {
+    if !state.tokens.contains(&parameters.token) {
         if state.forbidden_file_name.is_empty() {
             return Err(StatusCode::FORBIDDEN);
         }
 
-        let path = match current_dir() {
-            Ok(x) => x,
-            Err(err) => {
-                warn!("{}", err);
-                return Err(StatusCode::INTERNAL_SERVER_ERROR);
-            }
-        }
-        .join(&state.content_dir)
-        .join(&state.forbidden_file_name);
+        let forbidden_file_path = PathBuf::new()
+            .join(&state.content_dir)
+            .join(&state.forbidden_file_name);
 
         return Ok((
             StatusCode::FORBIDDEN,
-            ServeFile::new(path).oneshot(req).await,
+            ServeFile::new(forbidden_file_path)
+                .oneshot(crate::Internal::build_req(uri)?)
+                .await,
         ));
     }
 
-    let path = match current_dir() {
-        Ok(x) => x,
-        Err(err) => {
-            warn!("{}", err);
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    let path = PathBuf::new()
+        .join(&state.content_dir)
+        .join(&parameters.file);
+
+    if !state.allowed_extensions.contains(
+        &match path.extension() {
+            Some(x) => x,
+            None => return Err(StatusCode::NOT_FOUND),
         }
+        .to_string_lossy()
+        .to_string(),
+    ) {
+        return Err(StatusCode::NOT_FOUND);
     }
-    .join(&state.content_dir)
-    .join(&parameters.file);
 
     if !path.exists() {
         return Err(StatusCode::NOT_FOUND);
     }
 
-    Ok((StatusCode::OK, ServeFile::new(path).oneshot(req).await))
+    Ok((
+        StatusCode::OK,
+        ServeFile::new(path)
+            .oneshot(crate::Internal::build_req(uri)?)
+            .await,
+    ))
 }
