@@ -1,5 +1,9 @@
-use std::collections::HashSet;
+use reqwest::{Client, IntoUrl, Response};
+use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::Read;
 use std::net::TcpListener;
+use std::path::Path;
 
 pub async fn start_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
@@ -28,4 +32,41 @@ pub async fn start_app() -> String {
     tokio::spawn(server);
 
     format!("http://127.0.0.1:{}", port)
+}
+
+pub async fn rq_get(client: &Client, url: impl IntoUrl) -> Response {
+    client
+        .get(url)
+        .send()
+        .await
+        .expect("Failed to execute request.")
+}
+
+pub async fn rq_post_form(
+    client: &Client,
+    url: impl IntoUrl,
+    params: &HashMap<&str, &str>,
+) -> Response {
+    client
+        .post(url)
+        .form(&params)
+        .send()
+        .await
+        .expect("Failed to execute request.")
+}
+
+pub async fn rq_post(client: &Client, url: impl IntoUrl) -> Response {
+    client
+        .post(url)
+        .send()
+        .await
+        .expect("Failed to execute request.")
+}
+
+pub fn file_to_byte_vec(path: impl AsRef<Path>) -> Vec<u8> {
+    let mut file = File::open(path).unwrap();
+    let mut file_contents = Vec::new();
+    file.read_to_end(&mut file_contents).unwrap();
+
+    file_contents
 }
