@@ -1,12 +1,14 @@
-use crate::DrmAppState;
+use std::path::PathBuf;
+use std::sync::Arc;
+
 use axum::extract::{Form, State};
 use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
 use serde::Deserialize;
-use std::path::PathBuf;
-use std::sync::Arc;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
+
+use crate::{DrmAppState, Internal};
 
 #[derive(Deserialize)]
 pub struct RequestStruct {
@@ -17,29 +19,27 @@ pub struct RequestStruct {
 pub async fn request_post(
     State(state): State<Arc<DrmAppState>>,
     uri: Uri,
-    Form(parameters): Form<RequestStruct>,
+    Form(query): Form<RequestStruct>,
 ) -> Result<impl IntoResponse, StatusCode> {
-    if !state.config.tokens.contains(&parameters.token) {
+    // If the token is incorrect, return 403 together with the forbidden file (if enabled)
+    if !state.config.tokens.contains(&query.token) {
         if state.config.forbidden_file.is_empty() {
             return Err(StatusCode::FORBIDDEN);
         }
 
-        let forbidden_file_path = PathBuf::new()
-            .join(&state.config.content_dir)
-            .join(&state.config.forbidden_file);
-
         return Ok((
             StatusCode::FORBIDDEN,
-            ServeFile::new(forbidden_file_path)
-                .oneshot(crate::Internal::build_req(uri)?)
-                .await,
+            ServeFile::new(
+                PathBuf::from(&state.config.content_dir).join(&state.config.forbidden_file),
+            )
+            .oneshot(Internal::build_req(uri)?)
+            .await,
         ));
     }
 
-    let path = PathBuf::new()
-        .join(&state.config.content_dir)
-        .join(&parameters.file);
+    let path = PathBuf::from(&state.config.content_dir).join(&query.file);
 
+    // Check if the file extension is on the whitelist
     if !state.config.allowed_extensions.contains(
         &match path.extension() {
             Some(x) => x,
@@ -51,14 +51,18 @@ pub async fn request_post(
         return Err(StatusCode::NOT_FOUND);
     }
 
-    if !path.exists() {
-        return Err(StatusCode::NOT_FOUND);
-    }
-
+    // If the file exists, return it with 200
+    // We have to do it this way because we return the result as a tuple in order
+    // to change the status code from tower's ServeFile default 200 to 403 in the
+    // case of incorrect token
     Ok((
-        StatusCode::OK,
+        if path.exists() {
+            StatusCode::OK
+        } else {
+            StatusCode::NOT_FOUND
+        },
         ServeFile::new(path)
-            .oneshot(crate::Internal::build_req(uri)?)
+            .oneshot(Internal::build_req(uri)?)
             .await,
     ))
 }

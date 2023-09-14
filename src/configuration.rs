@@ -36,6 +36,7 @@ pub struct Settings {
 }
 
 impl Settings {
+    /// Load the configuration from a file
     pub fn from_file(name: &str) -> Result<Self, config::ConfigError> {
         let settings = Config::builder()
             .add_source(config::File::with_name(name))

@@ -1,5 +1,6 @@
 use crate::DrmSettings;
 use std::error::Error;
+use std::path::Path;
 use tracing::warn;
 
 pub struct DrmAppState {
@@ -15,12 +16,12 @@ impl DrmAppState {
         Ok(state)
     }
 
+    /// Warn if forbidden file is enabled but does not exist in the filesystem
     fn forbidden_file_check(&self) -> bool {
         if self.config.forbidden_file.is_empty() {
             return true;
         }
-        let path = std::path::Path::new(&self.config.forbidden_file);
-        let path_exists = path.exists();
+        let path_exists = Path::new(&self.config.forbidden_file).exists();
         if !path_exists {
             warn!("Forbidden file {} not found!", &self.config.forbidden_file);
         }
