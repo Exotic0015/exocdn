@@ -3,30 +3,30 @@ name = "exocdn"
 version = "0.3.0"
 edition = "2021"
 publish = false
-authors = [ "Exotic" ]
+authors = ["Exotic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.6", default-features = false, features = [ "tracing", "http1", "http2", "tokio", "form" ] }
-axum-server = { version = "0.5", default-features = false, features = [ "tls-rustls" ] }
+axum = { version = "0.6", default-features = false, features = ["tracing", "http1", "http2", "tokio", "form"] }
+axum-server = { version = "0.5", default-features = false, features = ["tls-rustls"] }
 rustls = "0.21"
 rustls-pemfile = "1.0"
 hyper = { version = "0.14", default-features = false }
-tokio = { version = "1", default-features = false, features = [ "tracing", "macros", "rt-multi-thread" ]}
+tokio = { version = "1", default-features = false, features = ["tracing", "macros", "rt-multi-thread"] }
 tower = "0.4"
-tower-http = { version = "0.4", features = [ "trace", "compression-full", "fs" ] }
+tower-http = { version = "0.4", features = ["trace", "compression-full", "fs"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
 tracing-appender = "0.2"
-config = { version = "0.13", default-features = false, features = [ "toml" ] }
-serde = { version = "1.0", features = [ "derive" ] }
+config = { version = "0.13", default-features = false, features = ["toml"] }
+serde = { version = "1.0", features = ["derive"] }
 blake3 = "1.4"
 walkdir = "2.3"
 futures = { version = "0.3", default-features = false }
 
 [dev-dependencies]
-reqwest = { version = "0.11", features = [ "json" ] }
+reqwest = { version = "0.11" }
 
 [profile.release]
 strip = true
