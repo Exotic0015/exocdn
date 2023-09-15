@@ -1,7 +1,11 @@
+use futures::future::try_join_all;
 use std::collections::HashMap;
 
-pub mod common;
+use hyper::StatusCode;
+
 use common::*;
+
+pub mod common;
 
 static URL: &str = "/drm/request";
 
@@ -16,7 +20,7 @@ async fn request_forbids_bad_token() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 403);
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
 }
 
 #[tokio::test]
@@ -26,7 +30,7 @@ async fn request_requires_token_and_file_name() {
 
     let response = rq_post(&client, &format!("{address}{URL}")).await;
 
-    assert_eq!(response.status(), 415);
+    assert_eq!(response.status(), StatusCode::UNSUPPORTED_MEDIA_TYPE);
 
     let mut params = HashMap::new();
     params.insert("token", "");
@@ -34,7 +38,7 @@ async fn request_requires_token_and_file_name() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_ne!(response.status(), 415);
+    assert_ne!(response.status(), StatusCode::UNSUPPORTED_MEDIA_TYPE);
 }
 
 #[tokio::test]
@@ -48,7 +52,7 @@ async fn good_token_returns_correct_file() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert!(response.status().is_success());
+    assert_eq!(response.status(), StatusCode::OK);
 
     assert_eq!(
         response.bytes().await.unwrap(),
@@ -67,7 +71,7 @@ async fn nested_files() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 200);
+    assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
         response.bytes().await.unwrap(),
         file_to_byte_vec("tests/cdn_test_content/nested/nestedfile.txt")
@@ -85,7 +89,7 @@ async fn path_traversal_attack_returns_404() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 404);
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
     assert_ne!(
         response.bytes().await.unwrap(),
         file_to_byte_vec("/etc/passwd")
@@ -103,7 +107,7 @@ async fn good_token_and_bad_file_returns_404() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 404);
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
@@ -119,14 +123,14 @@ async fn bad_token_returns_forbidden_file() {
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 403);
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
     assert_eq!(response.bytes().await.unwrap(), forbidden_file);
 
     params.insert("file", "testfile.txt");
 
     let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
 
-    assert_eq!(response.status(), 403);
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
     assert_eq!(response.bytes().await.unwrap(), forbidden_file);
 }
 
@@ -164,7 +168,6 @@ async fn dont_cache_files() {
 #[tokio::test]
 async fn concurrent_requests_for_same_file() {
     let address = start_app().await;
-    let client = reqwest::Client::new();
 
     // File to be requested concurrently
     let file_contents = file_to_byte_vec("tests/cdn_test_content/testfile.txt");
@@ -178,7 +181,6 @@ async fn concurrent_requests_for_same_file() {
     for _ in 0..num_concurrent_requests {
         let address_clone = address.clone();
         let file_contents_clone = file_contents.clone();
-        let client_clone = client.clone();
 
         // Spawn a new task for each concurrent request
         let task = tokio::spawn(async move {
@@ -186,10 +188,10 @@ async fn concurrent_requests_for_same_file() {
             params.insert("token", "test_token1");
             params.insert("file", "testfile.txt");
 
-            let response =
-                rq_post_form(&client_clone, &format!("{address_clone}{URL}"), &params).await;
+            let client = reqwest::Client::new();
+            let response = rq_post_form(&client, &format!("{address_clone}{URL}"), &params).await;
 
-            assert_eq!(response.status(), 200);
+            assert_eq!(response.status(), StatusCode::OK);
             assert_eq!(response.bytes().await.unwrap(), &file_contents_clone);
         });
 
@@ -197,7 +199,33 @@ async fn concurrent_requests_for_same_file() {
     }
 
     // Wait for all tasks to complete
-    for task in tasks {
-        task.await.expect("Task failed.");
-    }
+    try_join_all(tasks).await.unwrap();
+}
+
+#[tokio::test]
+async fn extension_whitelist() {
+    let address = start_app().await;
+    let client = reqwest::Client::new();
+
+    let mut params = HashMap::new();
+    params.insert("token", "test_token1");
+    params.insert("file", "testfile.txt");
+
+    let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.bytes().await.unwrap(),
+        file_to_byte_vec("tests/cdn_test_content/testfile.txt")
+    );
+
+    params.insert("file", "different_extension.ini");
+    let response = rq_post_form(&client, &format!("{address}{URL}"), &params).await;
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_ne!(
+        response.bytes().await.unwrap(),
+        file_to_byte_vec("tests/cdn_test_content/different_extension.ini")
+    );
 }
