@@ -13,7 +13,8 @@ axum-server = { version = "0.5", default-features = false, features = ["tls-rust
 rustls = "0.21"
 rustls-pemfile = "1.0"
 hyper = { version = "0.14", default-features = false }
-tokio = { version = "1", default-features = false, features = ["tracing", "macros", "rt-multi-thread"] }
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread", "parking_lot"] }
+parking_lot = { version = "0.12", features = ["hardware-lock-elision"] }
 tower = "0.4"
 tower-http = { version = "0.4", features = ["trace", "compression-full", "fs"] }
 tracing = "0.1"
