@@ -4,3 +4,5 @@ exocdn.log
 Cargo.lock
 /content/
 config.toml
+/perf.data*
+/flamegraph.svg
