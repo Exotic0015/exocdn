@@ -24,10 +24,10 @@ impl Internal {
     /// Build a Request from Uri, used when serving files with tower ServeFile middleware
     fn build_req(
         uri: axum::http::Uri,
-    ) -> Result<axum::http::Request<hyper::Body>, axum::http::StatusCode> {
+    ) -> Result<axum::http::Request<axum::body::Body>, axum::http::StatusCode> {
         match axum::http::Request::builder()
             .uri(uri)
-            .body(hyper::Body::empty())
+            .body(axum::body::Body::empty())
         {
             Ok(x) => Ok(x),
             Err(err) => {

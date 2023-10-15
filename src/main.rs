@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Create the listener with port defined in config
     let listener = TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], config.port)))
-        .expect(&format!("Failed to bind port {}", config.port));
+        .unwrap_or_else(|_| panic!("Failed to bind port {}", config.port));
 
     if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         // Run the server without TLS
