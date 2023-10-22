@@ -1,9 +1,10 @@
-use reqwest::{Client, IntoUrl, Response};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::net::TcpListener;
 use std::path::Path;
+
+use reqwest::{Client, IntoUrl, Response};
 
 pub async fn start_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");

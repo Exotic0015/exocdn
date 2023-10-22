@@ -1,23 +1,23 @@
-use axum::routing::{get, post};
-use axum::Router;
-use axum_server::tls_rustls::RustlsConfig;
 use std::error::Error;
 use std::future::Future;
 use std::net::TcpListener;
 use std::sync::Arc;
+
+use axum::routing::{get, post};
+use axum::Router;
+use axum_server::tls_rustls::RustlsConfig;
 use tower_http::compression::CompressionLayer;
 use tracing::warn;
 
+use cdnappstate::*;
+pub use configuration::*;
+use drmappstate::*;
+
 mod services;
 
-mod configuration;
-pub use configuration::*;
-
 mod cdnappstate;
-use cdnappstate::*;
-
+mod configuration;
 mod drmappstate;
-use drmappstate::*;
 
 struct Internal;
 impl Internal {

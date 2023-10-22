@@ -1,7 +1,9 @@
-use crate::DrmSettings;
 use std::error::Error;
 use std::path::PathBuf;
+
 use tracing::warn;
+
+use crate::DrmSettings;
 
 pub struct DrmAppState {
     pub config: DrmSettings,

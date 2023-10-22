@@ -1,6 +1,7 @@
+use std::collections::HashSet;
+
 use config::Config;
 use serde::Deserialize;
-use std::collections::HashSet;
 
 #[derive(Deserialize)]
 #[allow(unused)]
