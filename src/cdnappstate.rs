@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tokio::sync::RwLock;
+use tokio::task::JoinSet;
 use tracing::info;
 use walkdir::WalkDir;
 
@@ -44,12 +45,12 @@ impl CdnAppState {
         }
 
         // Spawn a task for every file which calculates and stores the hash
-        let mut handles = Vec::new();
+        let mut handles = JoinSet::new();
         for entry in files {
             let hasharc = self.hasharc.clone();
             let content_dir = self.config.content_dir.clone();
 
-            let handle = tokio::spawn(async move {
+            handles.spawn(async move {
                 let path = entry.path();
 
                 let mut file = File::open(path).await?;
@@ -69,12 +70,14 @@ impl CdnAppState {
 
                 Result::<_, Box<dyn Error + Send + Sync>>::Ok(())
             });
-
-            handles.push(handle);
         }
 
         // Wait for all tasks to complete
-        futures::future::try_join_all(handles).await?;
+        while let Some(res) = handles.join_next().await {
+            if let Err(err) = res? {
+                panic!("Hash calculation failed: {err}");
+            }
+        }
 
         info!("Done calculating file hashes.");
         Ok(())
