@@ -21,7 +21,7 @@ impl CdnAppState {
     pub async fn new(config: CdnSettings) -> Result<Self, Box<dyn Error>> {
         let hasharc = Arc::new(RwLock::new(HashMap::new()));
 
-        let state = CdnAppState { hasharc, config };
+        let state = Self { hasharc, config };
 
         // Calculate file hashes and populate the hashmap
         state.calculate_hashes().await?;
