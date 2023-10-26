@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use axum::BoxError;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tokio::sync::RwLock;
@@ -18,7 +19,7 @@ pub struct CdnAppState {
 }
 
 impl CdnAppState {
-    pub async fn new(config: CdnSettings) -> Result<Self, Box<dyn Error>> {
+    pub async fn new(config: CdnSettings) -> Result<Self, BoxError> {
         let hasharc = Arc::new(RwLock::new(HashMap::new()));
 
         let state = Self { hasharc, config };
@@ -31,7 +32,7 @@ impl CdnAppState {
     }
 
     /// Populate the file hash map with blake3 hashes
-    async fn calculate_hashes(&self) -> Result<(), Box<dyn Error>> {
+    async fn calculate_hashes(&self) -> Result<(), BoxError> {
         info!("Calculating CDN file hashes...");
         let mut files: Vec<walkdir::DirEntry> = Vec::new();
 

@@ -1,7 +1,7 @@
-use std::error::Error;
 use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
 
+use axum::BoxError;
 use tracing::level_filters::LevelFilter;
 use tracing::{error, warn};
 use tracing_appender::{non_blocking, rolling};
@@ -14,7 +14,7 @@ static LOG_FILENAME: &str = "exocdn.log";
 static CONFIG_FILENAME: &str = "config.toml";
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), BoxError> {
     // Truncate the log file
     let log_file = Path::new(LOG_FILENAME);
     if log_file.exists() {

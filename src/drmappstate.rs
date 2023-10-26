@@ -1,6 +1,6 @@
-use std::error::Error;
 use std::path::PathBuf;
 
+use axum::BoxError;
 use tracing::warn;
 
 use crate::DrmSettings;
@@ -10,7 +10,7 @@ pub struct DrmAppState {
 }
 
 impl DrmAppState {
-    pub fn new(config: DrmSettings) -> Result<Self, Box<dyn Error>> {
+    pub fn new(config: DrmSettings) -> Result<Self, BoxError> {
         let state = Self { config };
 
         state.forbidden_file_check();

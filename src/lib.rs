@@ -1,10 +1,10 @@
-use std::error::Error;
 use std::future::Future;
 use std::net::TcpListener;
 use std::sync::Arc;
 
+use axum::http::StatusCode;
 use axum::routing::{get, post};
-use axum::Router;
+use axum::{BoxError, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use tower_http::compression::CompressionLayer;
 use tracing::warn;
@@ -24,7 +24,7 @@ impl Internal {
     /// Build a Request from Uri, used when serving files with tower ServeFile middleware
     fn build_req(
         uri: axum::http::Uri,
-    ) -> Result<axum::http::Request<axum::body::Body>, axum::http::StatusCode> {
+    ) -> Result<axum::http::Request<axum::body::Body>, StatusCode> {
         match axum::http::Request::builder()
             .uri(uri)
             .body(axum::body::Body::empty())
@@ -32,14 +32,14 @@ impl Internal {
             Ok(x) => Ok(x),
             Err(err) => {
                 warn!("{}", err);
-                Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
             }
         }
     }
 }
 
 /// Configure the application with routes, middleware, and shared state
-async fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
+async fn config_app(config: Settings) -> Result<Router, BoxError> {
     // Trace layer used in every router
     let http_log = tower_http::trace::TraceLayer::new_for_http()
         .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO))
@@ -78,7 +78,7 @@ async fn config_app(config: Settings) -> Result<Router, Box<dyn Error>> {
 pub async fn run(
     listener: TcpListener,
     config: Settings,
-) -> Result<impl Future<Output = std::io::Result<()>> + Sized, Box<dyn Error>> {
+) -> Result<impl Future<Output = std::io::Result<()>> + Sized, BoxError> {
     // Configure the application
     let app = config_app(config).await?;
 
@@ -90,7 +90,7 @@ pub async fn run(
 pub async fn run_tls(
     listener: TcpListener,
     config: Settings,
-) -> Result<impl Future<Output = std::io::Result<()>> + Sized, Box<dyn Error>> {
+) -> Result<impl Future<Output = std::io::Result<()>> + Sized, BoxError> {
     // Load TLS configuration from certificate and private key files
     let tls_config = RustlsConfig::from_pem_file(
         &config.tls_settings.cert_path,
