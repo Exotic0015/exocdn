@@ -18,10 +18,11 @@ mod services;
 mod cdnappstate;
 mod configuration;
 mod drmappstate;
+mod logging;
 
 struct Internal;
 impl Internal {
-    /// Build a Request from Uri, used when serving files with tower ServeFile middleware
+    /// Build a Request from Uri, used when serving files with tower `ServeFile` middleware
     fn build_req(
         uri: axum::http::Uri,
     ) -> Result<axum::http::Request<axum::body::Body>, StatusCode> {
@@ -40,11 +41,6 @@ impl Internal {
 
 /// Configure the application with routes, middleware, and shared state
 async fn config_app(config: Settings) -> Result<Router, BoxError> {
-    // Trace layer used in every router
-    let http_log = tower_http::trace::TraceLayer::new_for_http()
-        .make_span_with(tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO))
-        .on_response(tower_http::trace::DefaultOnResponse::new().level(tracing::Level::INFO));
-
     let mut app = Router::new().route("/health_check", get(services::health_check));
 
     if config.cdn_settings.enabled {
@@ -53,7 +49,7 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
         let cdn_router = Router::new()
             .route("/request/:hash/*file", get(services::cdn::request))
             .with_state(app_cdn_state)
-            .layer(http_log.clone())
+            .layer(logging::new_log_layer().make_span_with(logging::CdnMakeSpan))
             .layer(CompressionLayer::new());
 
         app = app.nest("/cdn", cdn_router);
@@ -65,7 +61,7 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
         let drm_router = Router::new()
             .route("/request", post(services::drm::request_post))
             .with_state(app_drm_state)
-            .layer(http_log.clone())
+            .layer(logging::new_log_layer().make_span_with(logging::DrmMakeSpan))
             .layer(CompressionLayer::new());
 
         app = app.nest("/drm", drm_router);
