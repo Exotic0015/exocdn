@@ -13,6 +13,7 @@ impl<B> MakeSpan<B> for DrmMakeSpan {
             Level::INFO,
             "DRM",
             version = ?request.version(),
+            method = ?request.method(),
             //uri = %request.uri(), // useless since uri is always /request
             //headers = ?request.headers(), // only for debugging, cherrypick the ones we actually need
             user_agent = ?headers.get("user-agent"),
@@ -31,6 +32,7 @@ impl<B> MakeSpan<B> for CdnMakeSpan {
             Level::INFO,
             "CDN",
             version = ?request.version(),
+            method = ?request.method(),
             uri = %request.uri(),
             //headers = ?request.headers(), // only for debugging, cherrypick the ones we actually need
             user_agent = ?headers.get("user-agent"),
