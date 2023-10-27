@@ -7,6 +7,7 @@ use axum::response::IntoResponse;
 use serde::Deserialize;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
+use tracing::info;
 
 use crate::{DrmAppState, Internal};
 
@@ -21,6 +22,11 @@ pub async fn request_post(
     uri: Uri,
     Form(query): Form<RequestStruct>,
 ) -> Result<impl IntoResponse, StatusCode> {
+    info!(
+        "incoming request for {:?} with token {:?}",
+        query.file, query.token
+    );
+
     // If the token is incorrect, return 403 together with the forbidden file (if enabled)
     if !state.config.tokens.contains(&query.token) {
         if state.config.forbidden_file.is_empty() {
