@@ -35,7 +35,7 @@ pub async fn start_app() -> String {
     format!("http://127.0.0.1:{}", port)
 }
 
-pub async fn rq_get(client: &Client, url: impl IntoUrl) -> Response {
+pub async fn rq_get(client: &Client, url: impl IntoUrl + Send) -> Response {
     client
         .get(url)
         .send()
@@ -45,7 +45,7 @@ pub async fn rq_get(client: &Client, url: impl IntoUrl) -> Response {
 
 pub async fn rq_post_form(
     client: &Client,
-    url: impl IntoUrl,
+    url: impl IntoUrl + Send,
     params: &HashMap<&str, &str>,
 ) -> Response {
     client
@@ -56,7 +56,7 @@ pub async fn rq_post_form(
         .expect("Failed to execute request.")
 }
 
-pub async fn rq_post(client: &Client, url: impl IntoUrl) -> Response {
+pub async fn rq_post(client: &Client, url: impl IntoUrl + Send) -> Response {
     client
         .post(url)
         .send()

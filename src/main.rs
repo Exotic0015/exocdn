@@ -63,10 +63,10 @@ async fn main() -> Result<(), BoxError> {
     if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         // Run the server without TLS
         warn!("Running an insecure (no TLS) instance!");
-        run(listener, config).await?.await?;
+        run(listener, config).await?.await;
     } else {
         // Run the server with TLS
-        run_tls(listener, config).await?.await?;
+        run_tls(listener, config).await?.await;
     }
 
     Ok(())

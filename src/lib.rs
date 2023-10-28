@@ -74,7 +74,7 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
 pub async fn run(
     listener: TcpListener,
     config: Settings,
-) -> Result<impl Future<Output = std::io::Result<()>> + Sized, BoxError> {
+) -> Result<impl Future<Output = impl Send>, BoxError> {
     // Configure the application
     let app = config_app(config).await?;
 
@@ -86,7 +86,7 @@ pub async fn run(
 pub async fn run_tls(
     listener: TcpListener,
     config: Settings,
-) -> Result<impl Future<Output = std::io::Result<()>> + Sized, BoxError> {
+) -> Result<impl Future<Output = impl Send>, BoxError> {
     // Load TLS configuration from certificate and private key files
     let tls_config = RustlsConfig::from_pem_file(
         &config.tls_settings.cert_path,
