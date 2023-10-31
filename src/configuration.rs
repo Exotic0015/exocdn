@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use config::Config;
+use dashmap::DashSet;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -16,8 +15,8 @@ pub struct DrmSettings {
     pub enabled: bool,
     pub content_dir: String,
     pub forbidden_file: String,
-    pub allowed_extensions: HashSet<String>,
-    pub tokens: HashSet<String>,
+    pub allowed_extensions: DashSet<String>,
+    pub tokens: DashSet<String>,
 }
 
 #[derive(Deserialize)]

@@ -23,9 +23,9 @@ pub async fn request(
     uri: Uri,
 ) -> Result<impl IntoResponse, StatusCode> {
     // Check if the requested hash matches the requested file
-    if let Some(x) = state.hasharc.clone().read().await.get(&file) {
+    if let Some(x) = state.hasharc.clone().get(&file) {
         // If the hash matches, attempt to open and serve the requested file
-        if &hash == x {
+        if hash == *x {
             let path = PathBuf::new().join(&state.config.content_dir).join(&file);
             return Ok(ServeFile::new(path)
                 .oneshot(Internal::build_req(uri)?)

@@ -1,14 +1,20 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::net::TcpListener;
 use std::path::Path;
 
+use dashmap::DashSet;
 use reqwest::{Client, IntoUrl, Response};
 
 pub async fn start_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
+
+    let allowed_extensions = DashSet::new();
+    allowed_extensions.insert(String::from("txt"));
+    let tokens = DashSet::new();
+    tokens.insert(String::from("test_token1"));
 
     let config = exocdn::Settings {
         port,
@@ -24,8 +30,8 @@ pub async fn start_app() -> String {
             enabled: true,
             content_dir: "tests/cdn_test_content".to_string(),
             forbidden_file: "forbidden.txt".to_string(),
-            allowed_extensions: HashSet::from([("txt".to_string())]),
-            tokens: HashSet::from([("test_token1".to_string())]),
+            allowed_extensions,
+            tokens,
         },
     };
 

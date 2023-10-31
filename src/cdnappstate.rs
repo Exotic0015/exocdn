@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use ahash::RandomState;
 use axum::BoxError;
+use dashmap::DashMap;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
-use tokio::sync::RwLock;
 use tokio::task::JoinSet;
 use tracing::info;
 use walkdir::WalkDir;
@@ -14,13 +14,13 @@ use crate::CdnSettings;
 
 /// Application state structure, including a hash lock and content directory
 pub struct CdnAppState {
-    pub hasharc: Arc<RwLock<HashMap<String, String>>>,
+    pub hasharc: Arc<DashMap<String, String, RandomState>>,
     pub config: CdnSettings,
 }
 
 impl CdnAppState {
     pub async fn new(config: CdnSettings) -> Result<Self, BoxError> {
-        let hasharc = Arc::new(RwLock::new(HashMap::new()));
+        let hasharc = Arc::new(DashMap::with_hasher(RandomState::new()));
 
         let state = Self { hasharc, config };
 
@@ -67,7 +67,7 @@ impl CdnAppState {
 
                 info!("{}/{}", hash, filename);
 
-                hasharc.write().await.insert(filename, hash);
+                hasharc.insert(filename, hash);
 
                 Result::<_, Box<dyn Error + Send + Sync>>::Ok(())
             });
