@@ -1,15 +1,15 @@
-use config::Config;
+use axum::BoxError;
 use dashmap::DashSet;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[allow(unused)]
 pub struct CdnSettings {
     pub enabled: bool,
     pub content_dir: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[allow(unused)]
 pub struct DrmSettings {
     pub enabled: bool,
@@ -19,14 +19,14 @@ pub struct DrmSettings {
     pub tokens: DashSet<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[allow(unused)]
 pub struct TlsSettings {
     pub cert_path: String,
     pub key_path: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[allow(unused)]
 pub struct Settings {
     pub port: u16,
@@ -37,11 +37,8 @@ pub struct Settings {
 
 impl Settings {
     /// Load the configuration from a file
-    pub fn from_file(name: &str) -> Result<Self, config::ConfigError> {
-        let settings = Config::builder()
-            .add_source(config::File::with_name(name))
-            .build()?;
-
-        settings.try_deserialize()
+    pub fn from_file(name: &str) -> Result<Self, BoxError> {
+        let config_str = std::fs::read_to_string(name)?;
+        Ok(toml::from_str(&config_str)?)
     }
 }
