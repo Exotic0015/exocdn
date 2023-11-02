@@ -61,7 +61,7 @@ impl CdnAppState {
 
                 let filename = path.strip_prefix(content_dir)?.to_string_lossy();
 
-                info!("{}/{}", hash, &*filename);
+                info!("{}/{}", hash, filename);
 
                 hasharc.insert(String::from(filename), hash);
 
