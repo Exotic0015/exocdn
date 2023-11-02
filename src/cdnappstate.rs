@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::sync::Arc;
 
 use ahash::RandomState;
@@ -60,16 +59,13 @@ impl CdnAppState {
 
                 let hash = blake3::hash(&file_buffer).to_string();
 
-                let filename = path
-                    .strip_prefix(content_dir)?
-                    .to_string_lossy()
-                    .to_string();
+                let filename = path.strip_prefix(content_dir)?.to_string_lossy();
 
-                info!("{}/{}", hash, filename);
+                info!("{}/{}", hash, &*filename);
 
-                hasharc.insert(filename, hash);
+                hasharc.insert(String::from(filename), hash);
 
-                Result::<_, Box<dyn Error + Send + Sync>>::Ok(())
+                Result::<(), BoxError>::Ok(())
             });
         }
 

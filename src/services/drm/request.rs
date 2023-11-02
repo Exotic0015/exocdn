@@ -33,26 +33,29 @@ pub async fn request_post(
             return Err(StatusCode::FORBIDDEN);
         }
 
+        let mut path = PathBuf::new();
+        path.push(&state.config.content_dir);
+        path.push(&state.config.forbidden_file);
+
         return Ok((
             StatusCode::FORBIDDEN,
-            ServeFile::new(
-                PathBuf::from(&state.config.content_dir).join(&state.config.forbidden_file),
-            )
-            .oneshot(Internal::build_req(uri)?)
-            .await,
+            ServeFile::new(path)
+                .oneshot(Internal::build_req(uri)?)
+                .await,
         ));
     }
 
-    let path = PathBuf::from(&state.config.content_dir).join(&query.file);
+    let mut path = PathBuf::new();
+    path.push(&state.config.content_dir);
+    path.push(&query.file);
 
     // Check if the file extension is on the whitelist
     if !state.config.allowed_extensions.contains(
-        &match path.extension() {
+        &*match path.extension() {
             Some(x) => x,
             None => return Err(StatusCode::NOT_FOUND),
         }
-        .to_string_lossy()
-        .into_owned(),
+        .to_string_lossy(),
     ) {
         return Err(StatusCode::NOT_FOUND);
     }

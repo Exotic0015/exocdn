@@ -26,7 +26,10 @@ pub async fn request(
     if let Some(x) = state.hasharc.clone().get(&file) {
         // If the hash matches, attempt to open and serve the requested file
         if hash == *x {
-            let path = PathBuf::new().join(&state.config.content_dir).join(&file);
+            let mut path = PathBuf::new();
+            path.push(&state.config.content_dir);
+            path.push(&file);
+
             return Ok(ServeFile::new(path)
                 .oneshot(Internal::build_req(uri)?)
                 .await);
