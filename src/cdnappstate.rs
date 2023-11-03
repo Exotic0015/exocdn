@@ -58,12 +58,10 @@ impl CdnAppState {
                 file.read_to_end(&mut file_buffer).await?;
 
                 let hash = blake3::hash(&file_buffer).to_string();
-
                 let filename = path.strip_prefix(content_dir)?.to_string_lossy();
 
                 info!("{}/{}", hash, filename);
-
-                hasharc.insert(String::from(filename), hash);
+                hasharc.insert(filename.into_owned(), hash);
 
                 Result::<(), BoxError>::Ok(())
             });
