@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          -nightly
+          - nightly
     steps:
     - uses: actions/checkout@v3
     - name: Run tests
