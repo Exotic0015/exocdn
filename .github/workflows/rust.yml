@@ -10,7 +10,12 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          -nightly
     steps:
     - uses: actions/checkout@v3
     - name: Run tests
-      run: cargo test --verbose
+    - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+    - run: cargo test --verbose
