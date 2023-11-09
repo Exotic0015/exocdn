@@ -1,3 +1,5 @@
+cargo-features = ["trim-paths"]
+
 [package]
 name = "exocdn"
 version = "1.0.1"
@@ -43,3 +45,4 @@ overflow-checks = false
 debug-assertions = false
 codegen-units = 1
 incremental = false
+trim-paths = true
