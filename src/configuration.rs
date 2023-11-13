@@ -19,7 +19,7 @@ pub struct DrmSettings {
     pub tokens: DashSet<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 #[allow(unused)]
 pub struct TlsSettings {
     pub cert_path: String,

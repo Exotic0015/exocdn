@@ -19,8 +19,7 @@ pub async fn start_app() -> String {
     let config = exocdn::Settings {
         port,
         tls_settings: exocdn::TlsSettings {
-            cert_path: "".to_string(),
-            key_path: "".to_string(),
+            ..Default::default()
         },
         cdn_settings: exocdn::CdnSettings {
             enabled: true,
