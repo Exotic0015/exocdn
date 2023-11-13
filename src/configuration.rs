@@ -3,14 +3,12 @@ use dashmap::DashSet;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-#[allow(unused)]
 pub struct CdnSettings {
     pub enabled: bool,
     pub content_dir: String,
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(unused)]
 pub struct DrmSettings {
     pub enabled: bool,
     pub content_dir: String,
@@ -20,14 +18,12 @@ pub struct DrmSettings {
 }
 
 #[derive(Deserialize, Debug, Default)]
-#[allow(unused)]
 pub struct TlsSettings {
     pub cert_path: String,
     pub key_path: String,
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(unused)]
 pub struct Settings {
     pub port: u16,
     pub tls_settings: TlsSettings,
