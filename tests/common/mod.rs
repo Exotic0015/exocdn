@@ -18,17 +18,15 @@ pub async fn start_app() -> String {
 
     let config = exocdn::Settings {
         port,
-        tls_settings: exocdn::TlsSettings {
-            ..Default::default()
-        },
+        tls_settings: exocdn::TlsSettings::default(),
         cdn_settings: exocdn::CdnSettings {
             enabled: true,
-            content_dir: "tests/cdn_test_content".to_string(),
+            content_dir: String::from("tests/cdn_test_content"),
         },
         drm_settings: exocdn::DrmSettings {
             enabled: true,
-            content_dir: "tests/cdn_test_content".to_string(),
-            forbidden_file: "forbidden.txt".to_string(),
+            content_dir: String::from("tests/cdn_test_content"),
+            forbidden_file: String::from("forbidden.txt"),
             allowed_extensions,
             tokens,
         },
