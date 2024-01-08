@@ -3,7 +3,7 @@ use std::path::Path;
 
 use axum::BoxError;
 use tracing::level_filters::LevelFilter;
-use tracing::{error, warn};
+use tracing::warn;
 use tracing_appender::{non_blocking, rolling};
 use tracing_subscriber::Layer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -51,17 +51,17 @@ async fn main() -> Result<(), BoxError> {
         .init();
 
     // Load the config from file
-    let config = match exocdn::Settings::from_file(CONFIG_FILENAME) {
-        Ok(x) => x,
-        Err(e) => {
-            error!("Config: {}", e);
-            std::process::exit(1);
-        }
-    };
+    let config = exocdn::Settings::from_file(CONFIG_FILENAME).unwrap_or_else(|e| {
+        tracing::error!("Config: {}", e);
+        panic!();
+    });
 
     // Create the listener with port defined in config
-    let listener = TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], config.port)))
-        .unwrap_or_else(|_| panic!("Failed to bind port {}", config.port));
+    let listener =
+        TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], config.port))).unwrap_or_else(|_| {
+            tracing::error!("Failed to bind to port {}", config.port);
+            panic!();
+        });
 
     if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         // Run the server without TLS
