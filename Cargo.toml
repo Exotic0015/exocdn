@@ -60,6 +60,7 @@ toml = { version = "0.8", default-features = false, features = ["parse"] }
 snmalloc-rs = { version = "0.3", default-features = false, features = [
     "build_cc",
 ] }
+memmap2 = { version = "0.9" }
 
 [lints]
 clippy.unwrap_used = "warn"
