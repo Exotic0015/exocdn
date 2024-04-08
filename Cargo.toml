@@ -8,22 +8,58 @@ publish = false
 authors = ["Exotic"]
 
 [dependencies]
-axum = { version = "0.7", default-features = false, features = ["tracing", "http1", "http2", "form"] }
-axum-server = { version = "0.6", default-features = false, features = ["tls-rustls"] }
-tokio = { version = "1.37", default-features = false, features = ["macros", "rt-multi-thread", "parking_lot"] }
-parking_lot = { version = "0.12", default-features = false, features = ["hardware-lock-elision"] }
+axum = { version = "0.7", default-features = false, features = [
+    "tracing",
+    "http1",
+    "http2",
+    "form",
+] }
+axum-server = { version = "0.6", default-features = false, features = [
+    "tls-rustls",
+] }
+tokio = { version = "1.37", default-features = false, features = [
+    "macros",
+    "rt-multi-thread",
+    "parking_lot",
+] }
+parking_lot = { version = "0.12", default-features = false, features = [
+    "hardware-lock-elision",
+] }
 tower = { version = "0.4", default-features = false }
-tower-http = { version = "0.5", default-features = false, features = ["trace", "compression-full", "fs"] }
+tower-http = { version = "0.5", default-features = false, features = [
+    "trace",
+    "compression-full",
+    "fs",
+] }
 tracing = { version = "0.1", default-features = false, features = ["std"] }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["std", "registry", "smallvec", "parking_lot"] }
-tracing-appender = { version = "0.2", default-features = false, features = ["parking_lot"] }
-serde = { version = "1.0", default-features = false, features = ["derive", "std", "alloc"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "std",
+    "registry",
+    "smallvec",
+    "parking_lot",
+] }
+tracing-appender = { version = "0.2", default-features = false, features = [
+    "parking_lot",
+] }
+serde = { version = "1.0", default-features = false, features = [
+    "derive",
+    "std",
+    "alloc",
+] }
 blake3 = { version = "1.5", default-features = false, features = ["std"] }
 walkdir = { version = "2.5", default-features = false }
-dashmap = { version = "5.5", default-features = false, features = ["inline", "serde"] }
-ahash = { version = "0.8", default-features = false, features = ["std", "runtime-rng"] }
+dashmap = { version = "5.5", default-features = false, features = [
+    "inline",
+    "serde",
+] }
+ahash = { version = "0.8", default-features = false, features = [
+    "std",
+    "runtime-rng",
+] }
 toml = { version = "0.8", default-features = false, features = ["parse"] }
-snmalloc-rs = { version = "0.3", default-features = false, features = ["build_cc"] }
+snmalloc-rs = { version = "0.3", default-features = false, features = [
+    "build_cc",
+] }
 
 [lints]
 clippy.unwrap_used = "warn"
