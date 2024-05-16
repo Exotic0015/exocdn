@@ -6,8 +6,10 @@ use axum::http::StatusCode;
 use axum::routing::{get, post};
 use axum::{BoxError, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use tower_http::compression::CompressionLayer;
 use tracing::warn;
+
+#[cfg(feature = "compression")]
+use tower_http::compression::CompressionLayer;
 
 use cdnappstate::*;
 pub use configuration::*;
@@ -49,8 +51,10 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
         let cdn_router = Router::new()
             .route("/request/:hash/*file", get(services::cdn::request))
             .with_state(app_cdn_state)
-            .layer(logging::new_log_layer().make_span_with(logging::CdnMakeSpan))
-            .layer(CompressionLayer::new());
+            .layer(logging::new_log_layer().make_span_with(logging::CdnMakeSpan));
+
+        #[cfg(feature = "compression")]
+        let cdn_router = cdn_router.layer(CompressionLayer::new());
 
         app = app.nest("/cdn", cdn_router);
     }
@@ -61,8 +65,10 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
         let drm_router = Router::new()
             .route("/request", post(services::drm::request_post))
             .with_state(app_drm_state)
-            .layer(logging::new_log_layer().make_span_with(logging::DrmMakeSpan))
-            .layer(CompressionLayer::new());
+            .layer(logging::new_log_layer().make_span_with(logging::DrmMakeSpan));
+
+        #[cfg(feature = "compression")]
+        let drm_router = drm_router.layer(CompressionLayer::new());
 
         app = app.nest("/drm", drm_router);
     }
