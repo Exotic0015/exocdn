@@ -4,7 +4,7 @@ use tower_http::trace::{DefaultOnResponse, MakeSpan, TraceLayer};
 use tower_http::LatencyUnit;
 use tracing::{span, Level, Span};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct DrmMakeSpan;
 impl<B> MakeSpan<B> for DrmMakeSpan {
     fn make_span(&mut self, request: &Request<B>) -> Span {
@@ -23,7 +23,7 @@ impl<B> MakeSpan<B> for DrmMakeSpan {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct CdnMakeSpan;
 impl<B> MakeSpan<B> for CdnMakeSpan {
     fn make_span(&mut self, request: &Request<B>) -> Span {

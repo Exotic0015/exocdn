@@ -2,13 +2,13 @@ use axum::BoxError;
 use dashmap::DashSet;
 use serde::Deserialize;
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, Default)]
 pub struct CdnSettings {
     pub enabled: bool,
     pub content_dir: String,
 }
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, Default)]
 pub struct DrmSettings {
     pub enabled: bool,
     pub content_dir: String,
@@ -17,13 +17,13 @@ pub struct DrmSettings {
     pub tokens: DashSet<String>,
 }
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, Default)]
 pub struct TlsSettings {
     pub cert_path: String,
     pub key_path: String,
 }
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, Default)]
 pub struct Settings {
     pub port: u16,
     pub tls_settings: TlsSettings,
