@@ -3,7 +3,6 @@ use std::sync::Arc;
 use ahash::RandomState;
 use axum::BoxError;
 use dashmap::DashMap;
-use tokio::fs::File;
 use tokio::task::JoinSet;
 use tracing::info;
 use walkdir::WalkDir;
@@ -52,10 +51,10 @@ impl CdnAppState {
             handles.spawn(async move {
                 let path = entry.path();
 
-                let file = File::open(path).await?;
-                let file_buffer = unsafe { memmap2::Mmap::map(&file)? };
+                let mut hasher = blake3::Hasher::new();
+                hasher.update_mmap(path)?;
+                let hash = hasher.finalize().to_string();
 
-                let hash = blake3::hash(&file_buffer).to_string();
                 let filename = path.strip_prefix(content_dir)?.to_string_lossy();
 
                 info!("{}/{}", hash, filename);
