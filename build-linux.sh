@@ -19,7 +19,7 @@ cargo update
 
 export MALLOC_CONF="thp:always,metadata_thp:always" # Enable Transparent Huge Pages
 echo "Building for target CPU: $TARGET_CPU"
-RUSTFLAGS="-C target-cpu=$TARGET_CPU -Zlocation-detail=none" cargo +nightly build -Z build-std=core,std,panic_abort,alloc,proc_macro -Z build-std-features=panic_immediate_abort ${COMPRESSION:""} --target x86_64-unknown-linux-gnu --release
+CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang" RUSTFLAGS="-Clink-arg=-fuse-ld=mold -Clink-arg=-Wl,--icf=all -C target-cpu=$TARGET_CPU -Zlocation-detail=none" cargo +nightly build -Z build-std=core,std,panic_abort,alloc,proc_macro -Z build-std-features=panic_immediate_abort ${COMPRESSION:""} --target x86_64-unknown-linux-gnu --release
 
 echo "Packing the binary"
 upx --best --lzma target/x86_64-unknown-linux-gnu/release/exocdn
