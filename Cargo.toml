@@ -17,10 +17,10 @@ axum = { version = "0.7", default-features = false, features = [
     "http2",
     "form",
 ] }
-axum-server = { version = "0.6", default-features = false, features = [
+axum-server = { version = "0.7", default-features = false, features = [
     "tls-rustls",
 ] }
-tokio = { version = "1.38", default-features = false, features = [
+tokio = { version = "1.39", default-features = false, features = [
     "macros",
     "rt-multi-thread",
     "parking_lot",
