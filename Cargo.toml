@@ -20,7 +20,7 @@ axum = { version = "0.7", default-features = false, features = [
 axum-server = { version = "0.7", default-features = false, features = [
     "tls-rustls",
 ] }
-tokio = { version = "1.40", default-features = false, features = [
+tokio = { version = "1.41", default-features = false, features = [
     "macros",
     "rt-multi-thread",
     "parking_lot",
@@ -28,8 +28,8 @@ tokio = { version = "1.40", default-features = false, features = [
 parking_lot = { version = "0.12", default-features = false, features = [
     "hardware-lock-elision",
 ] }
-tower = { version = "0.4", default-features = false }
-tower-http = { version = "0.5", default-features = false, features = [
+tower = { version = "0.5", default-features = false }
+tower-http = { version = "0.6", default-features = false, features = [
     "trace",
     "fs",
 ] }
@@ -50,7 +50,7 @@ serde = { version = "1.0", default-features = false, features = [
 ] }
 blake3 = { version = "1.5", default-features = false, features = ["std", "mmap"] }
 walkdir = { version = "2.5", default-features = false }
-dashmap = { version = "6.0", default-features = false, features = [
+dashmap = { version = "6.1", default-features = false, features = [
     "inline",
     "serde",
 ] }
