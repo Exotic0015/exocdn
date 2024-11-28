@@ -66,8 +66,11 @@ impl CdnAppState {
 
         // Wait for all tasks to complete
         while let Some(res) = handles.join_next().await {
-            if let Err(err) = res? {
-                panic!("Hash calculation failed: {err}");
+            match res? {
+                Err(err) => {
+                    panic!("Hash calculation failed: {err}");
+                }
+                _ => {}
             }
         }
 

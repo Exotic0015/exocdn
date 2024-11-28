@@ -1,8 +1,8 @@
 use axum::http::Request;
+use tower_http::LatencyUnit;
 use tower_http::classify::{ServerErrorsAsFailures, SharedClassifier};
 use tower_http::trace::{DefaultOnResponse, MakeSpan, TraceLayer};
-use tower_http::LatencyUnit;
-use tracing::{span, Level, Span};
+use tracing::{Level, Span, span};
 
 #[derive(Clone)]
 pub struct DrmMakeSpan;
