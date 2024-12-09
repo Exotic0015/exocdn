@@ -65,6 +65,7 @@ toml = { version = "0.8", default-features = false, features = ["parse"] }
 snmalloc-rs = { version = "0.3", default-features = false, features = [
     "build_cc",
     "lto",
+    "usewait-on-address",
 ] }
 
 [lints]
