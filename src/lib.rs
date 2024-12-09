@@ -49,7 +49,7 @@ async fn config_app(config: Settings) -> Result<Router, BoxError> {
         let app_cdn_state = Arc::new(CdnAppState::new(config.cdn_settings).await?);
 
         let cdn_router = Router::new()
-            .route("/request/:hash/*file", get(services::cdn::request))
+            .route("/request/{hash}/{*file}", get(services::cdn::request))
             .with_state(app_cdn_state)
             .layer(logging::new_log_layer().make_span_with(logging::CdnMakeSpan));
 

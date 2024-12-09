@@ -11,7 +11,7 @@ authors = ["Exotic"]
 compression = ["tower-http/compression-full"]
 
 [dependencies]
-axum = { version = "0.7", default-features = false, features = [
+axum = { version = "0.8.0-alpha.1", default-features = false, features = [
     "tracing",
     "http1",
     "http2",
@@ -48,7 +48,10 @@ serde = { version = "1.0", default-features = false, features = [
     "std",
     "alloc",
 ] }
-blake3 = { version = "1.5", default-features = false, features = ["std", "mmap"] }
+blake3 = { version = "1.5", default-features = false, features = [
+    "std",
+    "mmap",
+] }
 walkdir = { version = "2.5", default-features = false }
 dashmap = { version = "6.1", default-features = false, features = [
     "inline",
@@ -61,6 +64,7 @@ ahash = { version = "0.8", default-features = false, features = [
 toml = { version = "0.8", default-features = false, features = ["parse"] }
 snmalloc-rs = { version = "0.3", default-features = false, features = [
     "build_cc",
+    "lto",
 ] }
 
 [lints]
