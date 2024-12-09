@@ -3,7 +3,7 @@ cargo-features = ["trim-paths"]
 [package]
 name = "exocdn"
 version = "1.0.5"
-edition = "2021"
+edition = "2024"
 publish = false
 authors = ["Exotic"]
 
