@@ -11,7 +11,7 @@ authors = ["Exotic"]
 compression = ["tower-http/compression-full"]
 
 [dependencies]
-axum = { version = "0.8.0-alpha.1", default-features = false, features = [
+axum = { version = "0.8.0-rc.1", default-features = false, features = [
     "tracing",
     "http1",
     "http2",
