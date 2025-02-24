@@ -2,7 +2,7 @@ cargo-features = ["trim-paths"]
 
 [package]
 name = "exocdn"
-version = "1.0.5"
+version = "1.0.6"
 edition = "2024"
 publish = false
 authors = ["Exotic"]
@@ -11,16 +11,23 @@ authors = ["Exotic"]
 compression = ["tower-http/compression-full"]
 
 [dependencies]
-axum = { version = "0.8.0-rc.1", default-features = false, features = [
+axum = { version = "0.8", default-features = false, features = [
     "tracing",
     "http1",
     "http2",
     "form",
 ] }
 axum-server = { version = "0.7", default-features = false, features = [
-    "tls-rustls",
+    "tls-rustls-no-provider",
 ] }
-tokio = { version = "1.42", default-features = false, features = [
+rustls = { version = "0.23", default-features = false, features = [
+    "logging",
+    "std",
+    "ring",
+    "tls12",
+    "read_buf",
+] }
+tokio = { version = "1.43", default-features = false, features = [
     "macros",
     "rt-multi-thread",
     "parking_lot",
@@ -48,7 +55,7 @@ serde = { version = "1.0", default-features = false, features = [
     "std",
     "alloc",
 ] }
-blake3 = { version = "1.5", default-features = false, features = [
+blake3 = { version = "1.6", default-features = false, features = [
     "std",
     "mmap",
 ] }
