@@ -62,6 +62,7 @@ async fn main() -> Result<(), BoxError> {
             tracing::error!("Failed to bind to port {}", config.port);
             panic!();
         });
+    listener.set_nonblocking(true)?;
 
     if config.tls_settings.key_path.is_empty() || config.tls_settings.cert_path.is_empty() {
         // Run the server without TLS

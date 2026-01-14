@@ -85,7 +85,7 @@ pub async fn run(
     let app = config_app(config).await?;
 
     // Create and return the server
-    Ok(axum_server::from_tcp(listener).serve(app.into_make_service()))
+    Ok(axum_server::from_tcp(listener)?.serve(app.into_make_service()))
 }
 
 /// Run with TLS
@@ -104,5 +104,5 @@ pub async fn run_tls(
     let app = config_app(config).await?;
 
     // Create and return the server
-    Ok(axum_server::from_tcp_rustls(listener, tls_config).serve(app.into_make_service()))
+    Ok(axum_server::from_tcp_rustls(listener, tls_config)?.serve(app.into_make_service()))
 }

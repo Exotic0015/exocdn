@@ -9,6 +9,8 @@ use reqwest::{Client, IntoUrl, Response};
 
 pub async fn start_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+    listener.set_nonblocking(true).unwrap();
+
     let port = listener.local_addr().unwrap().port();
 
     let allowed_extensions = DashSet::new();
