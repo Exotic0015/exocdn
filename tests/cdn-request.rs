@@ -1,5 +1,5 @@
 use futures::future::try_join_all;
-use reqwest::StatusCode;
+use reqwest::{StatusCode, header};
 
 use common::*;
 
@@ -135,4 +135,39 @@ async fn path_traversal_attack_returns_404() {
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
     assert_ne!(response.bytes().await.unwrap(), file_contents);
+}
+
+#[tokio::test]
+async fn etag() {
+    let address = start_app().await;
+    let client = reqwest::Client::new();
+
+    let file_contents = file_to_byte_vec("tests/cdn_test_content/testfile.txt");
+    let file_hash = blake3::hash(&file_contents).to_string();
+
+    let url = format!("{address}{URL}/{file_hash}/testfile.txt");
+
+    let response = rq_get(&client, &url).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let etag = response
+        .headers()
+        .get(header::ETAG)
+        .expect("Response should contain ETag")
+        .to_owned();
+
+    assert_eq!(etag, format!("\"{}\"", file_hash));
+
+    let cache_response = client
+        .get(&url)
+        .header(header::IF_NONE_MATCH, &etag)
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(cache_response.status(), StatusCode::NOT_MODIFIED);
+
+    let body = cache_response.bytes().await.unwrap();
+    assert!(body.is_empty(), "304 response should not contain a body");
 }
