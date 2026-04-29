@@ -27,7 +27,7 @@ rustls = { version = "0.23", default-features = false, features = [
     "tls12",
     "read_buf",
 ] }
-tokio = { version = "1.49", default-features = false, features = [
+tokio = { version = "1.52", default-features = false, features = [
     "macros",
     "rt-multi-thread",
     "parking_lot",
@@ -68,8 +68,8 @@ ahash = { version = "0.8", default-features = false, features = [
     "std",
     "runtime-rng",
 ] }
-toml = { version = "0.9", default-features = false, features = ["parse", "serde", "std"] }
-snmalloc-rs = { version = "0.3", default-features = false, features = [
+toml = { version = "1.1", default-features = false, features = ["parse", "serde", "std"] }
+snmalloc-rs = { version = "0.7", default-features = false, features = [
     "build_cc",
     "lto",
     "usewait-on-address",
