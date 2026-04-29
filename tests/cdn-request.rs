@@ -171,3 +171,31 @@ async fn etag() {
     let body = cache_response.bytes().await.unwrap();
     assert!(body.is_empty(), "304 response should not contain a body");
 }
+
+#[tokio::test]
+async fn etag_head() {
+    let address = start_app().await;
+    let client = reqwest::Client::new();
+
+    let file_contents = file_to_byte_vec("tests/cdn_test_content/testfile.txt");
+    let file_hash = blake3::hash(&file_contents).to_string();
+    let url = format!("{address}{URL}/{file_hash}/testfile.txt");
+
+    let response = client
+        .head(&url)
+        .send()
+        .await
+        .expect("Failed to send HEAD request");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.headers().contains_key(reqwest::header::ETAG));
+
+    assert_eq!(response.content_length().unwrap(), 0);
+
+    let etag = response
+        .headers()
+        .get(reqwest::header::ETAG)
+        .unwrap()
+        .to_owned();
+    assert_eq!(etag, format!("\"{}\"", file_hash));
+}
